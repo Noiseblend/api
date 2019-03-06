@@ -1,0 +1,15 @@
+[run]
+source =
+    noiseblend_api
+    tests
+branch = True
+omit =
+    noiseblend_api/cli.py
+
+[report]
+exclude_lines =
+    no cov
+    no qa
+    noqa
+    pragma: no cover
+    if __name__ == .__main__.:

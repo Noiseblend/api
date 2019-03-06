@@ -1,0 +1,13 @@
+**/__pycache__
+*.egg-info
+*.pyc
+*.sublime-*
+.env
+.git
+.ropeproject
+__pycache__
+docker/*
+Dockerfile
+env/*
+hooks/*
+pip-wheel-metadata

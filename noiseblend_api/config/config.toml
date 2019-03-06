@@ -1,0 +1,78 @@
+[spotify]
+client_id = ""
+client_secret = ""
+redirect_uri = "https://www.noiseblend.com"
+scope = [
+    "user-read-email",
+    "user-read-private",
+    "user-read-birthdate",
+    "user-library-read",
+    "user-library-modify",
+    "user-top-read",
+    "user-modify-playback-state",
+    "user-read-playback-state",
+    "user-read-currently-playing",
+    "user-read-recently-played",
+    "playlist-read-private",
+    "playlist-read-collaborative",
+    "playlist-modify-public",
+    "playlist-modify-private",
+    "ugc-image-upload"
+]
+
+[api]
+allow_origins = [
+    "https://www.noiseblend.com",
+    "https://www.noiseblend.com:3000",
+    "https://noiseblend.com",
+    "https://noiseblend.com:3000"
+]
+
+[db]
+create_tables = true
+
+[db.connection]
+user = "postgres"
+password = ""
+host = "localhost"
+database = "postgres"
+port = 5432
+
+[db.pool.api]
+min_size = 10
+max_size = 50
+max_inactive_connection_lifetime = 300.0
+
+[db.pool.worker]
+min_size = 0
+max_size = 1
+max_inactive_connection_lifetime = 30.0
+
+[sendgrid]
+template_id = ""
+apikey = ""
+sender = "confirm@noiseblend.com"
+
+[sentry]
+dsn = ""
+release = "production"
+environment = "production"
+
+[redis.pool]
+minsize = 2
+maxsize = 20
+[redis.auth]
+host = "localhost"
+port = 6379
+
+[worker.redis.pool]
+minsize = 2
+maxsize = 20
+[worker.redis.auth]
+host = "localhost"
+port = 6379
+
+[alexa]
+auth_type = "basic"
+client_id = "alexa-blend"
+client_secret = "alexa-secret"

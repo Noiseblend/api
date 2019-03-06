@@ -1,0 +1,35 @@
+{
+	"build_systems":
+	[
+		{
+			"file_regex": "^[ ]*File \"(...*?)\", line ([0-9]*)",
+			"name": "Anaconda Python Builder",
+			"selector": "source.python",
+			"shell_cmd": "\"python\" -u \"$file\""
+		}
+	],
+	"folders":
+	[
+		{
+			"folder_exclude_patterns":
+			[
+				"__pycache__",
+				".ropeproject",
+				".mypy_cache",
+				".tox",
+				"dist",
+				"build",
+				"*.egg-info",
+				"pip-wheel-metadata"
+			],
+			"path": "."
+		}
+	],
+	"settings":
+	{
+		"PyTest":
+		{
+			"mode": "manual"
+		}
+	}
+}
