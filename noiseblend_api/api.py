@@ -1335,7 +1335,11 @@ async def devices_watcher(request, ws, polling=30):
                 break
 
 
-spf.register_plugin(CORS(), origins=config.api.allow_origins, automatic_options=True)
+if config.api.cors:
+    spf.register_plugin(
+        CORS(), origins=config.api.allow_origins, automatic_options=True
+    )
+
 spf.register_plugin(arq)
 spf.register_plugin(
     auth,

@@ -21,6 +21,7 @@ scope = [
 ]
 
 [api]
+cors = true
 allow_origins = [
     "https://www.noiseblend.com",
     "https://www.noiseblend.com:3000",
