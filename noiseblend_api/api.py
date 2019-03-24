@@ -43,6 +43,7 @@ from .plugins import (
     auth,
     cache_control,
     camelcase_response,
+    cors,
     snakecase_request,
     spotify_client,
 )
@@ -1340,6 +1341,7 @@ if config.api.cors:
         CORS(), origins=config.api.allow_origins, automatic_options=True
     )
 
+spf.register_plugin(cors)
 spf.register_plugin(arq)
 spf.register_plugin(
     auth,
