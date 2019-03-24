@@ -1340,8 +1340,9 @@ if config.api.cors:
     spf.register_plugin(
         CORS(), origins=config.api.allow_origins, automatic_options=True
     )
+else:
+    spf.register_plugin(cors)
 
-spf.register_plugin(cors)
 spf.register_plugin(arq)
 spf.register_plugin(
     auth,

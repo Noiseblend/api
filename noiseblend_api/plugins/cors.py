@@ -1,6 +1,8 @@
 from sanic import response
 from spf import SanicPlugin
 
+from .priority import PRIORITY
+
 
 # pylint: disable=unused-argument
 class CORS(SanicPlugin):
@@ -20,3 +22,9 @@ class CORS(SanicPlugin):
 
 
 cors = CORS()
+
+
+@cors.middleware(priority=PRIORITY.request.cors, relative="pre")
+async def cors_request(request):
+    if request.method == "OPTIONS":
+        return response.HTTPResponse(status=204)

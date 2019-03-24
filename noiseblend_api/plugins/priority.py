@@ -3,13 +3,14 @@ from addict import Dict
 PRIORITY = Dict(
     {
         "request": {
-            "camelcase_to_snakecase": 0,
-            "add_redis_pool": 1,
-            "add_db_pool": 1,
-            "add_spotify_client": 2,
-            "authorize_request": 3,
-            "add_arq_actors": 4,
-            "check_etag": 6,
+            "cors": 0,
+            "camelcase_to_snakecase": 1,
+            "add_redis_pool": 2,
+            "add_db_pool": 2,
+            "add_spotify_client": 3,
+            "authorize_request": 4,
+            "add_arq_actors": 5,
+            "check_etag": 7,
         },
         "response": {
             "snakecase_to_camelcase": 0,
