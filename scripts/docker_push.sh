@@ -2,6 +2,8 @@
 echo "$DOCKER_PASSWORD" | docker login -u alinpanaitiu --password-stdin
 
 docker push noiseblend/api:$TRAVIS_COMMIT
+docker push noiseblend/api:latest
+
 docker tag noiseblend/api:$TRAVIS_COMMIT noiseblend/api:staging
 docker push noiseblend/api:staging
 
@@ -14,7 +16,5 @@ fi
 
 if [[ $TRAVIS_TAG ]]; then
     docker tag noiseblend/api:$TRAVIS_COMMIT noiseblend/api:$TRAVIS_TAG
-    docker tag noiseblend/api:$TRAVIS_COMMIT noiseblend/api:latest
     docker push noiseblend/api:$TRAVIS_TAG
-    docker push noiseblend/api:latest
 fi

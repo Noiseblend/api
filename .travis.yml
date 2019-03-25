@@ -16,6 +16,7 @@ matrix:
     - install:
         - echo "$DOCKER_PASSWORD" | docker login -u alinpanaitiu --password-stdin
         - docker build -t noiseblend/api:$TRAVIS_COMMIT .
+        - docker build -t noiseblend/api:latest .
       script:
         - docker images
 deploy:
