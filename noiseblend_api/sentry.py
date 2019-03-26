@@ -55,7 +55,7 @@ class SentryLogging(ErrorHandler):
                         pass
 
                 for k in REQUEST_ATTRS:
-                    scope.set_context(k, get_request_attr(request, k))
+                    scope.set_extra(k, get_request_attr(request, k))
             sentry_sdk.capture_exception(exception)
         except Exception as e:
             self.logger.exception(e)
