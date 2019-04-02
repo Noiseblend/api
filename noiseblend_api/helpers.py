@@ -326,6 +326,7 @@ async def start_playback(spotify, args, player, volume_fader):
             device_id=device_id,
         )
     else:
+        await spotify.shuffle(False, device=device)
         await spotify.start_playback(
             device=device,
             artist=artist,

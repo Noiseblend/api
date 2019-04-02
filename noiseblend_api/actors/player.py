@@ -72,6 +72,7 @@ class Player(SpotifyActor):
             if volume is not None:
                 await spotify.volume(volume, device=device)
 
+            await spotify.shuffle(False, device=device)
             await spotify.start_playback(
                 device=device,
                 artist=artist,
