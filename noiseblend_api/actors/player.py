@@ -4,6 +4,7 @@ from concurrent.futures import CancelledError
 from arq import concurrent
 from first import first
 
+from .. import logger
 from ..exceptions import NoDeviceAvailable
 from ..sql import SQL
 from .actor import Actor
@@ -71,6 +72,14 @@ class Player(SpotifyActor):
 
             if volume is not None:
                 await spotify.volume(volume, device=device)
+
+            logger.info(
+                "Starting playback with:\n\tartist=%s\n\talbum=%s\n\tplaylist=%s\n\ttracks=%s",
+                artist,
+                album,
+                playlist,
+                tracks,
+            )
 
             await spotify.shuffle(False, device=device)
             await spotify.start_playback(

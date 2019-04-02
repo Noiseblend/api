@@ -4,6 +4,7 @@ from arq import concurrent
 from first import first
 from sanic.exceptions import NotFound
 
+from .. import logger
 from ..blends import BLEND_MAPPING
 from ..constants import BLEND_PLAYLIST_DESCRIPTION, BLEND_PLAYLIST_NAME
 from .actor import Actor
@@ -60,13 +61,20 @@ class Blender(SpotifyActor):
         )
 
         if play:
+            uri = f"spotify:user:{blend_playlist.owner.id}:playlist:{blend_playlist.id}"
+            logger.info(
+                "Playing blend %s with id=%s and uri=%s",
+                blend_id,
+                blend_playlist.id,
+                uri,
+            )
             if not self.player:
                 self.player = Player()
             await self.player.play(
                 spotify.user_id,
                 spotify.username,
                 device=device,
-                playlist=blend_playlist.uri,
+                playlist=uri,
                 volume=volume,
                 fade=fade_params,
                 device_id=device_id,
