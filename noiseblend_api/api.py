@@ -858,7 +858,7 @@ async def clone_playlist(request):
     )
     await spotify.user_playlist_replace_tracks(spotify.username, playlist.id, tracks)
     if image:
-        await add_image(spotify, playlist.id, image)
+        await add_image(spotify, playlist.id, image, conn=conn)
 
     playlist = await spotify.user_playlist(spotify.username, playlist.id)
     playlist = await assign_audio_features(spotify, playlist=playlist)
@@ -918,7 +918,7 @@ async def filter_playlist(request):
         image = source_playlist.images[0].url
 
     if image:
-        await add_image(spotify, playlist.id, image)
+        await add_image(spotify, playlist.id, image, conn=conn)
 
     playlist = await spotify.user_playlist(spotify.username, playlist.id)
     playlist = await assign_audio_features(spotify, playlist=playlist)
