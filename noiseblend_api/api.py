@@ -167,7 +167,7 @@ async def is_authenticated(request):
 @app.get("/authorization-url")
 async def authorization_url(request):
     spotify = request["spotify"]
-    url, _ = spotify.session.authorization_url(API.AUTHORIZE.value)
+    url, _ = spotify.session.authorization_url(API.AUTHORIZE.value, nosignup="true")
     return {"authorization_url": url}
 
 
