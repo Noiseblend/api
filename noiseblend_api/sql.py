@@ -1,6 +1,4 @@
-import addict
-
-
+# pylint: disable=too-few-public-methods
 class SQL:
     insert_token = """
         INSERT INTO tokens ("user")
