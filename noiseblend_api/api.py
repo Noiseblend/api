@@ -219,6 +219,23 @@ async def logout(request):
     )
 
 
+@app.get("/reset-token")
+async def reset_token(request):
+    spotify = request["spotify"]
+    conn = request["dbpool"]
+
+    if not spotify.user_id:
+        return {}
+
+    await conn.execute(
+        "UPDATE app_users SET long_lived_token = $2 WHERE id = $1",
+        spotify.user_id,
+        uuid4(),
+    )
+
+    return {}
+
+
 @app.get("/me")
 async def me(request):
     spotify = request["spotify"]
