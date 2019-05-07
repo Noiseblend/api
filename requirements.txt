@@ -20,5 +20,5 @@ sanic_compress==0.1.1
 sanic_cors==0.9.7
 sendgrid==5.6.0
 sentry_sdk==0.7.6
-spfy==3.7.6
+spfy==3.7.7
 stringcase==1.2.0
