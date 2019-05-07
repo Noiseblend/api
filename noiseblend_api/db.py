@@ -50,6 +50,7 @@ class AppUser(db.Entity):
     auth_token = Required(
         UUID, default=uuid4, index=True, sql_default=SQL_DEFAULT.uuid4
     )
+    long_lived_token = Optional(UUID, index=True)
     device_mapping = Required(Json, default=dict, volatile=True, sql_default="'{}'")
     blends = Set(Blend)
 
@@ -85,6 +86,12 @@ class AppUser(db.Entity):
             _dict["id"] = str(_dict["id"])
         if "auth_token" in _dict:
             _dict["auth_token"] = str(_dict["auth_token"])
+        if "long_lived_token" in _dict:
+            _dict["long_lived_token"] = str(_dict["long_lived_token"])
+        if "oauth_refresh_token" in _dict:
+            _dict["oauth_refresh_token"] = str(_dict["oauth_refresh_token"])
+        if "oauth_code" in _dict:
+            _dict["oauth_code"] = str(_dict["oauth_code"])
         return _dict
 
     def reset_token(self):

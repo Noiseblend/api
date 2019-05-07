@@ -39,6 +39,7 @@ async def client(
     if auth_token:
         queries += [
             dbpool.fetchrow(SQL.app_user_auth, auth_token),
+            dbpool.fetchrow(SQL.app_user_auth_long_lived, auth_token),
             dbpool.fetchrow(SQL.app_user_by_token, auth_token),
             dbpool.fetchval(SQL.oauth_token_expired, auth_token),
         ]
