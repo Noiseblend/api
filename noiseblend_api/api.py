@@ -234,7 +234,7 @@ async def reset_token(request):
         token,
     )
 
-    return {"token": token}
+    return {"token": str(token)}
 
 
 @app.get("/me")
