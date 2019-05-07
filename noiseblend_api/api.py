@@ -234,6 +234,7 @@ async def reset_token(request):
         token,
     )
 
+    await request["invalidate_client"]()
     return {"token": str(token)}
 
 
