@@ -227,13 +227,14 @@ async def reset_token(request):
     if not spotify.user_id:
         return {}
 
+    token = uuid4()
     await conn.execute(
         "UPDATE app_users SET long_lived_token = $2 WHERE id = $1",
         spotify.user_id,
-        uuid4(),
+        token,
     )
 
-    return {}
+    return {"token": token}
 
 
 @app.get("/me")
