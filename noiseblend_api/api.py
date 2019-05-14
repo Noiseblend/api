@@ -746,7 +746,7 @@ async def fetch_playlist(request):
 async def get_playback(request):
     spotify = request["spotify"]
     playback = await spotify.current_playback(retries=0)
-    return playback and playback.to_dict()
+    return playback and playback.to_dict() or {}
 
 
 @app.get("/devices")
