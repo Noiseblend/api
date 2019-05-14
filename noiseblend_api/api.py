@@ -1088,17 +1088,18 @@ async def dislike(request):
         {"method": "GET", "user_id": spotify.user_id, "path": "/fetch-dislikes"}
     ]
 
+    coros = []
+    if skip:
+        coros.append(spotify.next_track(retries=0))
+
     if current not in possible_current_keys:
         values = {k: request.json[k] for k in valid_keys}
-        coros = [User.dislike_pg(conn, spotify, **values)]
+        coros.append(User.dislike_pg(conn, spotify, **values))
 
         for plural_key in valid_key_plurals:
             key = plurals[plural_key]
             ids = request.json[plural_key]
             coros += [User.dislike_pg(conn, spotify, **{key: value}) for value in ids]
-
-        if skip:
-            coros.append(spotify.next_track(retries=0))
 
         await asyncio.gather(*coros)
 
@@ -1115,25 +1116,23 @@ async def dislike(request):
         return {"disliked": False}
 
     if current == "artist":
-        await User.dislike_pg(conn, spotify, artist=playback.item.artists[0].id)
+        coros.append(User.dislike_pg(conn, spotify, artist=playback.item.artists[0].id))
     elif current == "artists":
-        await asyncio.gather(
-            *[
-                User.dislike_pg(conn, spotify, artist=a.id)
-                for a in playback.item.artists
-            ]
-        )
+        coros += [
+            User.dislike_pg(conn, spotify, artist=a.id) for a in playback.item.artists
+        ]
+
     elif current == "genre":
         genre = (await spotify.artist(playback.item.artists[0].id)).genres[0]
-        await User.dislike_pg(conn, spotify, genre=genre)
+        coros.append(User.dislike_pg(conn, spotify, genre=genre))
     elif current == "genres":
         artists = await asyncio.gather(
             *[spotify.artist(a.id) for a in playback.item.artists]
         )
         genres = set(sum([a.genres for a in artists], []))
-        await asyncio.gather(
-            *[User.dislike_pg(conn, spotify, genre=genre) for genre in genres]
-        )
+        coros += [User.dislike_pg(conn, spotify, genre=genre) for genre in genres]
+
+    await asyncio.gather(*coros)
 
     invalidate_endpoints.append(
         {"method": "GET", "user_id": spotify.user_id, "path": f"/{plural(current)}"}
