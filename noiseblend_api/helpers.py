@@ -30,6 +30,8 @@ def fuzzysearch(needle, haystack):
 
 
 def plural(item):
+    if item[-1] == "s":
+        return item
     if item[-1] == "y":
         return f"{item[:-1]}ies"
     return f"{item}s"

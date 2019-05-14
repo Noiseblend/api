@@ -746,7 +746,7 @@ async def fetch_playlist(request):
 async def get_playback(request):
     spotify = request["spotify"]
     playback = await spotify.current_playback(retries=0)
-    return playback and playback.to_dict() or {}
+    return playback.to_dict() if playback else {}
 
 
 @app.get("/devices")
@@ -1070,35 +1070,73 @@ async def dislike(request):
     spotify = request["spotify"]
     conn = request["dbpool"]
 
+    current = request.json.get("current")
     skip = request.json.get("skip", False)
     keys = {"artist", "genre", "country", "city"}
     plurals = {plural(k): k for k in keys}
     valid_keys = keys & set(request.json.keys())
     valid_key_plurals = plurals.keys() & set(request.json.keys())
-    if not valid_keys or valid_key_plurals:
+    possible_keys = keys | plurals.keys()
+    possible_current_keys = {"artist", "genre", "artists", "genres"}
+
+    if not (valid_keys or valid_key_plurals or current in possible_current_keys):
         raise InvalidUsage(
-            f'Missing parameter. Pass at least one of `{", ".join(keys | plurals.keys())}`'
+            f'Missing parameter. Pass at least one of `current, {", ".join(possible_keys)}`'
         )
 
-    values = {k: request.json[k] for k in valid_keys}
-    coros = [User.dislike_pg(conn, spotify, **values)]
-
-    for plural_key in valid_key_plurals:
-        key = plurals[plural_key]
-        ids = request.json[plural_key]
-        coros += [User.dislike_pg(conn, spotify, **{key: value}) for value in ids]
-
-    if skip:
-        coros.append(spotify.next_track(retries=0))
-
-    await asyncio.gather(*coros)
-
     invalidate_endpoints = [
-        {"method": "GET", "user_id": spotify.user_id, "path": f"/{plural(key)}"}
-        for key in valid_keys
-    ]
-    invalidate_endpoints.append(
         {"method": "GET", "user_id": spotify.user_id, "path": "/fetch-dislikes"}
+    ]
+
+    if current not in possible_current_keys:
+        values = {k: request.json[k] for k in valid_keys}
+        coros = [User.dislike_pg(conn, spotify, **values)]
+
+        for plural_key in valid_key_plurals:
+            key = plurals[plural_key]
+            ids = request.json[plural_key]
+            coros += [User.dislike_pg(conn, spotify, **{key: value}) for value in ids]
+
+        if skip:
+            coros.append(spotify.next_track(retries=0))
+
+        await asyncio.gather(*coros)
+
+        invalidate_endpoints += [
+            {"method": "GET", "user_id": spotify.user_id, "path": f"/{plural(key)}"}
+            for key in valid_keys
+        ]
+        return with_cache_invalidation(
+            {"disliked": True}, endpoints=invalidate_endpoints
+        )
+
+    playback = await spotify.current_playback(retries=2)
+    if not playback or not playback.item.artists:
+        return {"disliked": False}
+
+    if current == "artist":
+        await User.dislike_pg(conn, spotify, artist=playback.item.artists[0].id)
+    elif current == "artists":
+        await asyncio.gather(
+            *[
+                User.dislike_pg(conn, spotify, artist=a.id)
+                for a in playback.item.artists
+            ]
+        )
+    elif current == "genre":
+        genre = (await spotify.artist(playback.item.artists[0].id)).genres[0]
+        await User.dislike_pg(conn, spotify, genre=genre)
+    elif current == "genres":
+        artists = await asyncio.gather(
+            *[spotify.artist(a.id) for a in playback.item.artists]
+        )
+        genres = set(sum([a.genres for a in artists], []))
+        await asyncio.gather(
+            *[User.dislike_pg(conn, spotify, genre=genre) for genre in genres]
+        )
+
+    invalidate_endpoints.append(
+        {"method": "GET", "user_id": spotify.user_id, "path": f"/{plural(current)}"}
     )
     return with_cache_invalidation({"disliked": True}, endpoints=invalidate_endpoints)
 
