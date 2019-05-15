@@ -58,7 +58,7 @@ class Radio(SpotifyActor):
         return matched_tracks
 
     # pylint: disable=too-many-locals
-    @concurrent(Actor.HIGH_QUEUE, unique=True)
+    @concurrent(Actor.HIGH_QUEUE, unique=True, expire_seconds=20)
     async def play_radio(
         self,
         user_id,

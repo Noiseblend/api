@@ -18,7 +18,7 @@ class Blender(SpotifyActor):
         self.player = None
 
     # pylint: disable=too-many-locals
-    @concurrent(Actor.HIGH_QUEUE, unique=True)
+    @concurrent(Actor.HIGH_QUEUE, unique=True, expire_seconds=60)
     async def blend(
         self,
         user_id,

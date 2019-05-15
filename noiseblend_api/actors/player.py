@@ -47,7 +47,7 @@ class Player(SpotifyActor):
         return device and device.id, True
 
     # pylint: disable=too-many-locals
-    @concurrent(Actor.HIGH_QUEUE, unique=True)
+    @concurrent(Actor.HIGH_QUEUE, unique=True, expire_seconds=20)
     async def play(
         self,
         user_id,

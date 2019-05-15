@@ -39,7 +39,7 @@ class VolumeFader(SpotifyActor):
             if step != last_step:
                 await asyncio.sleep(self.polling)
 
-    @concurrent(unique=True, timeout_seconds=2500)
+    @concurrent(unique=True, timeout_seconds=2500, expire_seconds=60)
     async def fade(
         self,
         user_id,
