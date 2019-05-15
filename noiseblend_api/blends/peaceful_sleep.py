@@ -7,5 +7,5 @@ class PeacefulSleep(Blend):
         "target_acousticness": 0.6,
         "min_instrumentalness": 0.55,
     }
-    GENRES = {"sleep", "soundtrack"}
+    GENRES = {"sleep", "rainy-day", "piano"}
     GENRE_TO_ARTIST_RATIO = 0.65

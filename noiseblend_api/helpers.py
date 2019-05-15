@@ -292,6 +292,10 @@ async def user_disliked_artists(spotify, conn=None):
     return await conn.fetch(SQL.disliked_artists, spotify.user_id)
 
 
+async def user_disliked_genres(spotify, conn=None):
+    return await conn.fetch(SQL.disliked_genres, spotify.user_id)
+
+
 async def start_playback(spotify, args, player, volume_fader):
     device = args.get("device")
     artist = args.get("artist")

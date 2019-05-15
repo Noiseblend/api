@@ -43,6 +43,11 @@ class SQL:
         FROM artist_haters
         WHERE "user" = $1
     """
+    disliked_genres = """
+        SELECT genre
+        FROM genre_haters
+        WHERE "user" = $1
+    """
     user_data = """
         SELECT u.*, au.*,
                c.name AS country_name,

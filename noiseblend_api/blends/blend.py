@@ -4,7 +4,7 @@ from collections import defaultdict
 from spfy.constants import TimeRange
 
 from .. import logger
-from ..helpers import user_disliked_artists
+from ..helpers import user_disliked_artists, user_disliked_genres
 
 
 class Blend:
@@ -16,7 +16,7 @@ class Blend:
     ARTIST_LIMIT = 4
     TOP_TRACKS_COUNT = 0
     GENRE_TO_ARTIST_RATIO = 0.4
-    TOP_TRACKS_TIME_RANGE = TimeRange.MEDIUM_TERM
+    TOP_TRACKS_TIME_RANGE = None
     TOP_TRACKS_ATTRIBUTES = {}
     TOP_TRACKS_TO_ARTIST_RATIO = 0.3
 
@@ -28,7 +28,7 @@ class Blend:
     @staticmethod
     def track_matches_attributes(track, attributes):
         return all(
-            abs(value - getattr(track, attribute)) <= 0.1
+            abs(value - getattr(track, attribute)) <= 0.3
             for attribute, value in attributes.items()
         )
 
@@ -40,7 +40,8 @@ class Blend:
         track_limit = int(track_limit * self.TOP_TRACKS_TO_ARTIST_RATIO)
 
         top_tracks = await self.spotify.current_user_top_tracks(
-            time_range=self.TOP_TRACKS_TIME_RANGE, limit=50
+            time_range=self.TOP_TRACKS_TIME_RANGE or random.choice(list(TimeRange)),
+            limit=50,
         )
 
         audio_features = await self.spotify.audio_features(tracks=top_tracks)
@@ -71,7 +72,12 @@ class Blend:
 
     async def get_top_related_tracks(self, count, time_range=None):
         tracks = await self.spotify.current_user_top_tracks(
-            time_range=time_range or self.TOP_TRACKS_TIME_RANGE, limit=50
+            time_range=(
+                time_range
+                or self.TOP_TRACKS_TIME_RANGE
+                or random.choice(list(TimeRange))
+            ),
+            limit=50,
         )
 
         track_list = list(tracks)
@@ -102,7 +108,9 @@ class Blend:
         return {g: a for g, a in genre_artists.items() if len(a) >= min_artists}
 
     async def get_top_artists(self, min_artists, time_range=None, related=True):
-        artists = await self.spotify.top_artists_pg(time_range or TimeRange.LONG_TERM)
+        artists = await self.spotify.top_artists_pg(
+            time_range or random.choice(list(TimeRange))
+        )
 
         if not related:
             return random.sample(artists, min(min_artists, len(artists)))
@@ -133,8 +141,13 @@ class Blend:
         disliked_artists = set(
             await user_disliked_artists(self.spotify, conn=self.dbpool)
         )
+        disliked_genres = set(
+            await user_disliked_genres(self.spotify, conn=self.dbpool)
+        )
         tracks = [
-            t for t in tracks if not set(a.id for a in t.artists) & disliked_artists
+            t
+            for t in tracks
+            if not await self.disliked_track(t, disliked_artists, disliked_genres)
         ]
         logger.debug("Dislike Filter: %d tracks", len(tracks))
 
@@ -143,6 +156,16 @@ class Blend:
             logger.debug("Explicit Filter: %d tracks", len(tracks))
 
         return [t.id for t in tracks]
+
+    async def track_genres(self, track):
+        artists = await self.spotify.artists(a.id for a in track.artists)
+        return set(sum([(a.genres or []) for a in artists], []))
+
+    async def disliked_track(self, track, disliked_artists, disliked_genres):
+        return bool(
+            set(a.id for a in track.artists) & disliked_artists
+            or (await self.track_genres(track)) & disliked_genres
+        )
 
     # pylint: disable=too-many-locals
     async def generate_tracks(
@@ -220,5 +243,7 @@ class Blend:
         order = order or self.ORDER
         if order:
             tracks = await self.spotify.order_by(order, tracks)
+        else:
+            random.shuffle(tracks)
 
         return tracks
