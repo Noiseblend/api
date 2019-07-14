@@ -1007,8 +1007,8 @@ async def pause(request):
     spotify = request["spotify"]
 
     [paused, playback] = await asyncio.gather(
-        await spotify.pause_playback(retries=0),
-        await spotify.current_playback(retries=0),
+        spotify.pause_playback(retries=0),
+        spotify.current_playback(retries=0),
         return_exceptions=True,
     )
 
