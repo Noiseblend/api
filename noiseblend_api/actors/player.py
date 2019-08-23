@@ -59,6 +59,7 @@ class Player(SpotifyActor):
         tracks=None,
         volume=None,
         fade=None,
+        shuffle=False,
         device_id=None,
     ):
         try:
@@ -81,7 +82,7 @@ class Player(SpotifyActor):
                 tracks,
             )
 
-            await spotify.shuffle(False, device=device)
+            await spotify.shuffle(shuffle, device=device)
             await spotify.start_playback(
                 device=device,
                 artist=artist,

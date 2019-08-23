@@ -330,6 +330,7 @@ async def start_playback(spotify, args, player, volume_fader):
             tracks=tracks,
             volume=volume,
             fade=fade_params,
+            shuffle=shuffle,
             device_id=device_id,
         )
     else:
