@@ -305,6 +305,7 @@ async def start_playback(spotify, args, player, volume_fader):
     volume = args.get("volume")
     filter_explicit = args.get("filter_explicit")
     volume = args.get("volume")
+    shuffle = args.get("shuffle", False)
     fade_params = args.get("fade")
     device_id = args.get("device_id")
 
@@ -332,7 +333,7 @@ async def start_playback(spotify, args, player, volume_fader):
             device_id=device_id,
         )
     else:
-        await spotify.shuffle(False, device=device)
+        await spotify.shuffle(shuffle, device=device)
         await spotify.start_playback(
             device=device,
             artist=artist,
