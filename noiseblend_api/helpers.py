@@ -11,6 +11,7 @@ from first import first
 from fuzzywuzzy import fuzz
 from spfy.cache import Image, ImageMixin, Playlist
 from spfy.constants import AudioFeature
+from spfy.exceptions import SpotifyDeviceUnavailableException
 from spfy.util import normalize_features
 
 from .constants import ALL_FIELDS, BLEND_ALLOWED_FIELDS, PLAYLIST_DESCRIPTIONS
@@ -298,6 +299,7 @@ async def user_disliked_genres(spotify, conn=None):
 
 async def start_playback(spotify, args, player, volume_fader):
     device = args.get("device")
+    preferred_devices = args.get("preferred_devices")
     artist = args.get("artist")
     album = args.get("album")
     playlist = args.get("playlist")
@@ -324,6 +326,7 @@ async def start_playback(spotify, args, player, volume_fader):
             spotify.user_id,
             spotify.username,
             device=device,
+            preferred_devices=preferred_devices,
             artist=artist,
             album=album,
             playlist=playlist,
@@ -334,7 +337,17 @@ async def start_playback(spotify, args, player, volume_fader):
             device_id=device_id,
         )
     else:
-        await spotify.shuffle(shuffle, device=device)
+        if preferred_devices:
+            device = None
+            for possible_device in preferred_devices:
+                try:
+                    await spotify.shuffle(shuffle, device=possible_device)
+                except SpotifyDeviceUnavailableException:
+                    continue
+                else:
+                    device = possible_device
+                    break
+
         await spotify.start_playback(
             device=device,
             artist=artist,

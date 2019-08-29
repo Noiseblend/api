@@ -3,6 +3,7 @@ from concurrent.futures import CancelledError
 
 from arq import concurrent
 from first import first
+from spfy.exceptions import SpotifyDeviceUnavailableException
 
 from .. import logger
 from ..exceptions import NoDeviceAvailable
@@ -53,6 +54,7 @@ class Player(SpotifyActor):
         user_id,
         username,
         device=None,
+        preferred_devices=None,
         artist=None,
         album=None,
         playlist=None,
@@ -64,12 +66,12 @@ class Player(SpotifyActor):
     ):
         try:
             spotify = await self.spotify(user_id, username)
-            if not device:
+            if not device and not preferred_devices:
                 device, device_is_new = await self.wait_for_new_device(
                     spotify, device_id
                 )
-            if not device:
-                raise NoDeviceAvailable
+                if not device:
+                    raise NoDeviceAvailable
 
             if volume is not None:
                 await spotify.volume(volume, device=device)
@@ -82,7 +84,17 @@ class Player(SpotifyActor):
                 tracks,
             )
 
-            await spotify.shuffle(shuffle, device=device)
+            if preferred_devices:
+                device = None
+                for possible_device in preferred_devices:
+                    try:
+                        await spotify.shuffle(shuffle, device=possible_device)
+                    except SpotifyDeviceUnavailableException:
+                        continue
+                    else:
+                        device = possible_device
+                        break
+
             await spotify.start_playback(
                 device=device,
                 artist=artist,
