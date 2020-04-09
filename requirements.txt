@@ -9,8 +9,8 @@ fuzzywuzzy==0.17.0
 git+git://github.com/alin23/arq.git@v1.2.0#egg=arq
 honcho==1.0.1
 kick==1.1.0
-pony==0.7.9
-psycopg2-binary==2.7.7
+pony==0.7.13
+psycopg2-binary==2.8.5
 pycountry==18.12.8
 python-dateutil==2.8.0
 python-Levenshtein==0.12.0

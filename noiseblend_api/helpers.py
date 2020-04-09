@@ -312,6 +312,8 @@ async def start_playback(spotify, args, player, volume_fader):
     fade_params = args.get("fade")
     device_id = args.get("device_id")
 
+    if device:
+        await spotify.transfer_playback(device)
     if volume is not None:
         await spotify.volume(volume, device=device)
 
@@ -342,6 +344,7 @@ async def start_playback(spotify, args, player, volume_fader):
             device = None
             for possible_device in preferred_devices:
                 try:
+                    await spotify.transfer_playback(possible_device)
                     await spotify.shuffle(shuffle, device=possible_device)
                 except SpotifyDeviceUnavailableException:
                     continue

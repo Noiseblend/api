@@ -63,10 +63,7 @@ class Random(Blend):
 
         top_tracks = []
         responses = await asyncio.gather(*requests.values())
-        params = {
-            seed_type: response
-            for seed_type, response in zip(requests.keys(), responses)
-        }
+        params = dict(zip(requests.keys(), responses))
         if "seed_genres" in params:
             genres = params["seed_genres"].genres
             params["seed_genres"] = random.sample(

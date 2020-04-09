@@ -47,7 +47,7 @@ class Player(SpotifyActor):
         device = await spotify.get_device(only_active=False)
         return device and device.id, True
 
-    # pylint: disable=too-many-locals
+    # pylint: disable=too-many-locals,too-many-branches
     @concurrent(Actor.HIGH_QUEUE, unique=True, expire_seconds=20)
     async def play(
         self,
@@ -73,6 +73,8 @@ class Player(SpotifyActor):
                 if not device:
                     raise NoDeviceAvailable
 
+            if device:
+                await spotify.transfer_playback(device)
             if volume is not None:
                 await spotify.volume(volume, device=device)
 
