@@ -297,6 +297,7 @@ async def user_disliked_genres(spotify, conn=None):
     return await conn.fetch(SQL.disliked_genres, spotify.user_id)
 
 
+# pylint: disable=too-many-locals
 async def start_playback(spotify, args, player, volume_fader):
     device = args.get("device")
     preferred_devices = args.get("preferred_devices")

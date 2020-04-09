@@ -88,6 +88,7 @@ class Player(SpotifyActor):
                 device = None
                 for possible_device in preferred_devices:
                     try:
+                        await spotify.transfer_playback(possible_device)
                         await spotify.shuffle(shuffle, device=possible_device)
                     except SpotifyDeviceUnavailableException:
                         continue
