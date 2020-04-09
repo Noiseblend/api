@@ -4,7 +4,7 @@ from sanic.response import HTTPResponse, json
 from spf import SanicPlugin
 from stringcase import camelcase
 
-from ..transform import transform_keys
+from ..transform import transform_datetime, transform_keys, transform_values
 from .priority import PRIORITY
 
 
@@ -40,7 +40,9 @@ async def snakecase_to_camelcase(request, response):
         response = response["__response__"]
 
     initial_response = response
-    response = json(transform_keys(response, camelcase))
+    response = json(
+        transform_values(transform_keys(response, camelcase), transform_datetime)
+    )
     response.__cache__ = cache
     response.__invalidate__ = invalidate
     response.__initial__ = initial_response
