@@ -51,12 +51,15 @@ if os.getenv("PRODUCTION") == "true":
     log_config["loggers"]["root"]["level"] = "WARNING"
 
 
-from .sentry import SentryLogging  # isort:skip
+import sentry_sdk  # isort:skip
+from sentry_sdk.integrations.sanic import SanicIntegration  # isort:skip
+from sentry_sdk.integrations.aiohttp import AioHttpIntegration  # isort:skip
 
-
-app = Sanic(
-    error_handler=SentryLogging(config=config, logger=logger), log_config=log_config
+sentry_sdk.init(
+    integrations=[SanicIntegration(), AioHttpIntegration()], **config.sentry
 )
+
+app = Sanic(log_config=log_config)
 Compress(app)
 spf = SanicPluginsFramework(app)
 app.static("/favicon.ico", str(ROOT_DIR / "favicon.ico"), name="favicon")

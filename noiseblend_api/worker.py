@@ -5,6 +5,8 @@ import addict
 import sentry_sdk
 from arq import BaseWorker
 from arq.utils import RedisSettings
+from sentry_sdk.integrations.aiohttp import AioHttpIntegration
+from sentry_sdk.integrations.sanic import SanicIntegration
 
 from . import DBPOOL, config, logger
 from .actors import Blender, Player, Radio, VolumeFader, WeeklyPlaylistFetcher
@@ -12,7 +14,9 @@ from .helpers import get_user_dict
 
 REDIS = config.worker.redis or config.redis
 
-sentry_sdk.init(**config.sentry)
+sentry_sdk.init(
+    integrations=[SanicIntegration(), AioHttpIntegration()], **config.sentry
+)
 
 
 class Worker(BaseWorker):
