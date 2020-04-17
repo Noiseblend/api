@@ -13,7 +13,7 @@ class SpotifyActor(Actor):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    @async_lru(size=50000, evict_callback=close_session)
+    @async_lru(size=10, evict_callback=close_session)
     async def spotify(self, user_id, username):
         spotify = AppSpotify(
             user_id=user_id,

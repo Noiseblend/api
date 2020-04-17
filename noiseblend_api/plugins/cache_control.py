@@ -39,8 +39,6 @@ async def check_etag(request, context):
         if request_id in context.responses and etag in context.responses[request_id]:
             return text("", headers=context.responses[request_id][etag], status=304)
 
-    request.app.responses = context.responses
-
 
 def get_cache_control_header(cache):
     header = []
@@ -94,5 +92,8 @@ async def cache_response(request, response, context):
             cache_headers["ETag"] = etag
 
         response.headers.update(cache_headers)
+
+    if len(context.responses) > 20:
+        context.responses.clear()
 
     return response

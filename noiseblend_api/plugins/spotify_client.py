@@ -22,7 +22,7 @@ async def close_session(spotify):
 CLIENT_CACHE = OrderedDict()
 
 
-@async_lru(size=50000, evict_callback=close_session, cache=CLIENT_CACHE)
+@async_lru(size=10, evict_callback=close_session, cache=CLIENT_CACHE)
 async def client(
     auth_token=None, query_token=None, blend_token=None, redis=None, dbpool=None
 ):
