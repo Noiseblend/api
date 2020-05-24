@@ -80,7 +80,8 @@ class AppUser(db.Entity):
         UUID, default=uuid4, index=True, sql_default=SQL_DEFAULT.uuid4
     )
 
-    def to_dict(self, *args, **kwargs):  # pylint: disable=arguments-differ
+    # pylint: disable=arguments-differ,signature-differs
+    def to_dict(self, *args, **kwargs):
         _dict = super().to_dict(*args, **kwargs)
         if "id" in _dict:
             _dict["id"] = str(_dict["id"])
