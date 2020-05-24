@@ -1233,6 +1233,32 @@ async def search(request):
     return items
 
 
+@app.post("/volume/increase")
+async def increase_volume(request):
+    spotify = request["spotify"]
+    device = request.json.get("device")
+    volume_step = request.json.get("volume_step") or 1
+
+    volume_step = cap(volume_step, 1, 99)
+    new_volume = await spotify.change_volume(
+        by=volume_step, backend=VolumeBackend.SPOTIFY, device=device
+    )
+    return {"volume": new_volume}
+
+
+@app.post("/volume/decrease")
+async def decrease_volume(request):
+    spotify = request["spotify"]
+    device = request.json.get("device")
+    volume_step = request.json.get("volume_step") or 1
+
+    volume_step = cap(volume_step, 1, 99)
+    new_volume = await spotify.change_volume(
+        by=-volume_step, backend=VolumeBackend.SPOTIFY, device=device
+    )
+    return {"volume": new_volume}
+
+
 @app.post("/volume")
 async def set_volume(request):
     spotify = request["spotify"]
