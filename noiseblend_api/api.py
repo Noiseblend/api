@@ -1235,36 +1235,32 @@ async def search(request):
 
 @app.post("/volume/increase")
 async def increase_volume(request):
+    return await change_volume(request, down=False)
+
+
+async def change_volume(request, *, down):
     spotify = request["spotify"]
     try:
         device = request.json.get("device")
+        fade = request.json.get("fade") or False
         volume_step = request.json.get("volume_step") or 1
         volume_step = cap(volume_step, 1, 99)
     except:
         device = None
         volume_step = 1
 
+    if down:
+        volume_step = -volume_step
+
     new_volume = await spotify.change_volume(
-        by=volume_step, backend=VolumeBackend.SPOTIFY, device=device
+        by=volume_step, backend=VolumeBackend.SPOTIFY, device=device, fade=fade
     )
     return {"volume": new_volume}
 
 
 @app.post("/volume/decrease")
 async def decrease_volume(request):
-    spotify = request["spotify"]
-    try:
-        device = request.json.get("device")
-        volume_step = request.json.get("volume_step") or 1
-        volume_step = cap(volume_step, 1, 99)
-    except:
-        device = None
-        volume_step = 1
-
-    new_volume = await spotify.change_volume(
-        by=-volume_step, backend=VolumeBackend.SPOTIFY, device=device
-    )
-    return {"volume": new_volume}
+    return await change_volume(request, down=True)
 
 
 @app.post("/volume")
