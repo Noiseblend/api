@@ -1243,6 +1243,7 @@ async def change_volume(request, *, down):
     try:
         device = request.json.get("device")
         fade = request.json.get("fade") or False
+        fade_seconds = request.json.get("fade_seconds") or 5
         volume_step = request.json.get("volume_step") or 1
         volume_step = cap(volume_step, 1, 99)
     except:
@@ -1253,7 +1254,11 @@ async def change_volume(request, *, down):
         volume_step = -volume_step
 
     new_volume = await spotify.change_volume(
-        by=volume_step, backend=VolumeBackend.SPOTIFY, device=device, fade=fade
+        by=volume_step,
+        backend=VolumeBackend.SPOTIFY,
+        device=device,
+        fade=fade,
+        fade_seconds=fade_seconds,
     )
     return {"volume": new_volume}
 

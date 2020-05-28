@@ -34,7 +34,7 @@ REQUIRES = [
     "sanic_cors",
     "sendgrid",
     "sentry_sdk",
-    "spfy>=3.8.1",
+    "spfy>=3.8.5",
     "stringcase",
 ]
 
