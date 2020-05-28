@@ -1249,6 +1249,8 @@ async def change_volume(request, *, down):
     except:
         device = None
         volume_step = 1
+        fade = False
+        fade_seconds = 5
 
     if down:
         volume_step = -volume_step
