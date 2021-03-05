@@ -16,7 +16,7 @@ def async_lru(size=100, evict_callback=None, cache=None):
                 cache[key] = result
             except KeyError:
                 if len(cache) >= size:
-                    evicted = cache.popitem(last=False)
+                    _, evicted = cache.popitem(last=False)
                     if evict_callback:
                         result = evict_callback(evicted)
                         if isawaitable(result):
