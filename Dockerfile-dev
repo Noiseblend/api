@@ -6,7 +6,7 @@ COPY requirements.txt /
 RUN pip install -U pip
 RUN pip install --cache-dir /cache -r /requirements.txt
 
-WORKDIR /app
+WORKDIR /appdev
 
 CMD pip install --cache-dir /cache -e /spfy && \
     pip install --cache-dir /cache -e . && \
