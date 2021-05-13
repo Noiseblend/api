@@ -46,17 +46,17 @@ class SentryLogging(ErrorHandler):
         spotify = request.get("spotify")
         dbpool = request.get("dbpool")
         try:
-            with sentry_sdk.configure_scope() as scope:
+            with sentry_sdk.push_scope() as scope:
                 if spotify and dbpool:
                     try:
                         user_dict = await get_user_dict(spotify, dbpool)
-                        scope.set_user(user_dict)
+                        scope.user = user_dict
                     except:
                         pass
 
                 for k in REQUEST_ATTRS:
                     scope.set_extra(k, get_request_attr(request, k))
-            sentry_sdk.capture_exception(exception)
+                sentry_sdk.capture_exception(exception)
         except Exception as e:
             self.logger.exception(e)
 

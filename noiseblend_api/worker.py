@@ -30,7 +30,7 @@ class Worker(BaseWorker):
     async def handle_execute_exc(self, started_at, exc, j):
         try:
             await super().handle_execute_exc(started_at, exc, j)
-            with sentry_sdk.configure_scope() as scope:
+            with sentry_sdk.push_scope() as scope:
                 try:
                     spotify = addict.Dict(
                         user_id=UUID(j.args[0]),
@@ -38,7 +38,7 @@ class Worker(BaseWorker):
                         ensure_db_pool=(lambda: asyncio.sleep(0)),
                     )
                     user_dict = await get_user_dict(spotify, DBPOOL)
-                    scope.set_user(user_dict)
+                    scope.user = user_dict
                 except:
                     pass
 
@@ -51,6 +51,6 @@ class Worker(BaseWorker):
                 scope.set_extra("args", j.args)
                 scope.set_extra("kwargs", j.kwargs)
                 scope.set_extra("started_at", started_at)
-            sentry_sdk.capture_exception(exc)
+                sentry_sdk.capture_exception(exc)
         except Exception as e:
             logger.exception(e)
