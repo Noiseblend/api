@@ -19,11 +19,11 @@ steps:
         - BUILDKIT_INLINE_CACHE=1
       password:
         from_secret: docker_password
-      repo: Noiseblend/api
+      repo: noiseblend/api
       username: alinpanaitiu
       purge: false
       cache_from:
-        - Noiseblend/api:latest
+        - noiseblend/api:latest
 
   - name: deploy
     image: curlimages/curl
@@ -53,6 +53,6 @@ steps:
 
 ---
 kind: signature
-hmac: f3dc35fd8326f49250e3a75cb77dc25892812008fbd5391d4af08deec195ee29
+hmac: 09e9fc22c6dd5efca796fb63a11d4088f13d8fabad47ed9246790d58b0b3e38b
 
 ...
