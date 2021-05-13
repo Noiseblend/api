@@ -3,17 +3,16 @@ from ..overrides import AppSpotify
 from .actor import Actor
 
 
-async def close_session(spotify):
-    if spotify.session:
-        await spotify.session.close()
-
-
 class SpotifyActor(Actor):
     def __init__(self, *args, **kwargs):
+        self.clients = {}
         super().__init__(*args, **kwargs)
 
     # @async_lru(size=10, evict_callback=close_session)
     async def spotify(self, user_id, username):
+        if (user_id, username) in self.clients:
+            return self.clients[(user_id, username)]
+
         spotify = AppSpotify(
             user_id=user_id,
             username=username,
@@ -24,4 +23,12 @@ class SpotifyActor(Actor):
             dbpool=self.dbpool,
         )
         await spotify.authenticate_user_pg(scope=config.spotify.scope)
+        self.clients[(user_id, username)] = spotify
         return spotify
+
+    async def shutdown(self):
+        await super().shutdown()
+        for _, spotify in self.clients:
+            if spotify.session:
+                await spotify.session.close()
+        self.clients.clear()
