@@ -257,7 +257,7 @@ async def add_image(spotify, playlist_id, image, conn=None):
 
     image_content = await Image.download_pg(conn, image)
     if image_content and len(image_content) <= 256 * 1024:
-        image_content = b64encode(image_content)
+        image_content = b64encode(image_content).decode()
         await spotify.user_playlist_upload_cover_image(
             spotify.username, playlist_id, image_content
         )
