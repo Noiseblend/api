@@ -11,3 +11,5 @@ Dockerfile
 env/*
 hooks/*
 pip-wheel-metadata
+.drone.yml
+.pre-commit-config.yaml

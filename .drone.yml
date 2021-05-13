@@ -1,0 +1,58 @@
+---
+kind: pipeline
+type: docker
+name: default
+
+platform:
+  os: linux
+  arch: amd64
+
+environment:
+  DOCKER_BUILDKIT: "1"
+
+steps:
+  - name: docker
+    image: plugins/docker
+    settings:
+      auto_tag: true
+      build_args:
+        - BUILDKIT_INLINE_CACHE=1
+      password:
+        from_secret: docker_password
+      repo: Noiseblend/api
+      username: alinpanaitiu
+      purge: false
+      cache_from:
+        - Noiseblend/api:latest
+
+  - name: deploy
+    image: curlimages/curl
+    commands:
+      - curl -L -s -S https://alin:$${DEPLOY_PASSWORD}@deploy.darkwoods.win/noiseblend
+    environment:
+      DEPLOY_PASSWORD:
+        from_secret: deploy_password
+    when:
+      branch:
+        - master
+    depends_on:
+      - docker
+
+  - name: cloudflare
+    image: jetrails/drone-cloudflare-caching
+    settings:
+      api_token:
+        from_secret: cloudflare_cache_purge_token
+      zone_identifier: 4261720d9ab40fdc12b31ba8c63d6fdf
+      action: purge_everything
+    when:
+      branch:
+        - master
+    depends_on:
+      - deploy
+
+---
+kind: signature
+hmac: f3dc35fd8326f49250e3a75cb77dc25892812008fbd5391d4af08deec195ee29
+
+...
