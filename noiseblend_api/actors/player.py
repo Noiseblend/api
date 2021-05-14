@@ -74,7 +74,7 @@ class Player(SpotifyActor):
                     raise NoDeviceAvailable
 
             if device:
-                await spotify.transfer_playback(device)
+                await spotify.transfer_playback(device, force_play=False)
             if volume is not None:
                 await spotify.volume(volume, device=device)
 
@@ -90,7 +90,9 @@ class Player(SpotifyActor):
                 device = None
                 for possible_device in preferred_devices:
                     try:
-                        await spotify.transfer_playback(possible_device)
+                        await spotify.transfer_playback(
+                            possible_device, force_play=False
+                        )
                         await spotify.shuffle(shuffle, device=possible_device)
                     except SpotifyDeviceUnavailableException:
                         continue

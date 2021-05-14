@@ -128,7 +128,7 @@ class Radio(SpotifyActor):
         if volume is not None:
             await spotify.volume(volume, device=device)
 
-        await spotify.transfer_playback(device)
+        await spotify.transfer_playback(device, force_play=False)
         await spotify.shuffle(False, device=device)
         await spotify.start_playback(
             device=device, tracks=tracks + recommended_tracks, retries=0
