@@ -28,7 +28,7 @@ class SpotifyActor(Actor):
 
     async def shutdown(self):
         await super().shutdown()
-        for _, spotify in self.clients:
+        for spotify in self.clients.values():
             if spotify.session:
                 await spotify.session.close()
         self.clients.clear()
