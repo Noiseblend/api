@@ -1,18 +1,18 @@
 import asyncio
-from base64 import b64encode
-from datetime import datetime, timedelta
-from hashlib import sha1
-from itertools import chain
-from uuid import UUID
 
 import addict
+from base64 import b64encode
+from datetime import datetime, timedelta
 from dateutil import relativedelta as rld
 from first import first
 from fuzzywuzzy import fuzz
+from hashlib import sha1
+from itertools import chain
 from spfy.cache import Image, ImageMixin, Playlist
 from spfy.constants import AudioFeature
 from spfy.exceptions import SpotifyDeviceUnavailableException
 from spfy.util import normalize_features
+from uuid import UUID
 
 from .constants import ALL_FIELDS, BLEND_ALLOWED_FIELDS, PLAYLIST_DESCRIPTIONS
 from .sql import SQL
@@ -258,9 +258,7 @@ async def add_image(spotify, playlist_id, image, conn=None):
     image_content = await Image.download_pg(conn, image)
     if image_content and len(image_content) <= 256 * 1024:
         image_content = b64encode(image_content).decode()
-        await spotify.user_playlist_upload_cover_image(
-            spotify.username, playlist_id, image_content
-        )
+        await spotify.user_playlist_upload_cover_image(playlist_id, image_content)
 
 
 def make_columns_serializable(record):

@@ -56,9 +56,7 @@ class Blender(SpotifyActor):
                 BLEND_PLAYLIST_NAME,
                 description=BLEND_PLAYLIST_DESCRIPTION,
             )
-        await spotify.user_playlist_replace_tracks(
-            spotify.username, blend_playlist.id, tracks
-        )
+        await spotify.user_playlist_replace_tracks(blend_playlist.id, tracks)
 
         if play:
             uri = f"spotify:user:{blend_playlist.owner.id}:playlist:{blend_playlist.id}"

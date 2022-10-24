@@ -1,13 +1,12 @@
 # pylint: disable=too-many-lines
 import asyncio
+
 import signal
+import ujson
 from base64 import b64decode
 from collections import OrderedDict
 from datetime import timedelta
 from itertools import chain
-from uuid import uuid4
-
-import ujson
 from sanic.exceptions import InvalidUsage, Unauthorized
 from sanic.response import json
 from sanic_cors import CORS
@@ -17,6 +16,7 @@ from spfy.constants import AudioFeature, VolumeBackend
 from spfy.exceptions import SpotifyDeviceUnavailableException
 from spfy.sql import SQL as SPFY_SQL
 from stringcase import camelcase, snakecase
+from uuid import uuid4
 
 from . import app, config, logger, spf
 from .constants import APP_USER_FLAGS
@@ -698,8 +698,6 @@ async def recommendations(request):
 async def fetch_playlist(request):
     spotify = request["spotify"]
     user = request.args.get("user")
-    if not user:
-        raise InvalidUsage("Missing parameter `user`")
 
     playlist_id = request.args.get("id")
     if not playlist_id:
@@ -712,12 +710,10 @@ async def fetch_playlist(request):
 
     playlist = {}
     if not only_tracks:
-        playlist = (
-            await spotify.user_playlist(user, playlist_id=playlist_id)
-        ).to_dict()
+        playlist = (await spotify.user_playlist(playlist_id=playlist_id)).to_dict()
     if offset + limit > 100:
         playlist["tracks"] = await spotify.user_playlist_tracks(
-            user, playlist_id=playlist_id, limit=limit, offset=offset
+            playlist_id=playlist_id, limit=limit, offset=offset
         )
     else:
         if "tracks" in playlist:
@@ -726,7 +722,7 @@ async def fetch_playlist(request):
             ]
         else:
             playlist["tracks"] = await spotify.user_playlist_tracks(
-                user, playlist_id=playlist_id, limit=limit, offset=offset
+                playlist_id=playlist_id, limit=limit, offset=offset
             )
 
     if with_tuneable_attributes:
@@ -795,11 +791,11 @@ async def save_playlist(request):
         tracks = chain.from_iterable(tracks)
         tracks = [t.id for t in tracks if not t.explicit]
 
-    await spotify.user_playlist_replace_tracks(spotify.username, playlist.id, tracks)
+    await spotify.user_playlist_replace_tracks(playlist.id, tracks)
     if image:
         await add_image(spotify, playlist.id, image, conn=conn)
 
-    playlist = await spotify.user_playlist(spotify.username, playlist.id)
+    playlist = await spotify.user_playlist(playlist.id)
     playlist = await assign_audio_features(spotify, playlist=playlist)
 
     return playlist.to_dict()
@@ -811,20 +807,16 @@ async def fetch_audio_features(request):
     owner_id = request.args.get("owner_id")
     playlist_id = request.args.get("playlist_id")
     tracks = request.args.get("tracks")
-    request_ok = bool((playlist_id and owner_id) or tracks)
+    request_ok = bool(playlist_id or tracks)
     if not request_ok:
-        raise InvalidUsage(
-            "Missing parameter (`playlist_id` and `owner_id`) or `tracks`"
-        )
+        raise InvalidUsage("Missing parameter `playlist_id` or `tracks`")
 
     if tracks:
         tracks = tracks.split(",")
 
     if playlist_id:
         fields = "total,limit,href,next,items(track(id))"
-        tracks = await spotify.user_playlist_tracks(
-            owner_id, playlist_id, fields=fields
-        )
+        tracks = await spotify.user_playlist_tracks(playlist_id, fields=fields)
         tracks = await tracks.all()
         tracks = [t.track.id for t in tracks if t.track]
     audio_features = await spotify.audio_features(tracks=tracks)
@@ -853,12 +845,11 @@ async def clone_playlist(request):
     if not playlist_id:
         raise InvalidUsage("Missing parameter `id`")
 
-    owner_id = request.json.get("owner_id", spotify.username)
     name = request.json.get("name")
     order = request.json.get("order")
     image = request.json.get("image")
     fields = "total,limit,href,next,items(track(id,is_playable))"
-    tracks = await spotify.user_playlist_tracks(owner_id, playlist_id, fields=fields)
+    tracks = await spotify.user_playlist_tracks(playlist_id, fields=fields)
     tracks = await tracks.all()
     if order:
         tracks = await spotify.order_by(
@@ -869,17 +860,17 @@ async def clone_playlist(request):
         for t in tracks
     ]
     if not name:
-        source_playlist = await spotify.user_playlist(owner_id, playlist_id)
+        source_playlist = await spotify.user_playlist(playlist_id)
         name = source_playlist.name
     description = await get_playlist_description(playlist_id, conn=conn)
     playlist = await spotify.user_playlist_create(
         spotify.username, name, description=description
     )
-    await spotify.user_playlist_replace_tracks(spotify.username, playlist.id, tracks)
+    await spotify.user_playlist_replace_tracks(playlist.id, tracks)
     if image:
         await add_image(spotify, playlist.id, image, conn=conn)
 
-    playlist = await spotify.user_playlist(spotify.username, playlist.id)
+    playlist = await spotify.user_playlist(playlist.id)
     playlist = await assign_audio_features(spotify, playlist=playlist)
 
     return playlist.to_dict()
@@ -895,8 +886,7 @@ async def filter_playlist(request):
     if not playlist_id:
         raise InvalidUsage("Missing parameter `id`")
 
-    owner_id = request.json.get("owner_id", spotify.username)
-    source_playlist = await spotify.user_playlist(owner_id, playlist_id)
+    source_playlist = await spotify.user_playlist(playlist_id)
 
     name = request.json.get("name") or source_playlist.name
     order = request.json.get("order")
@@ -906,7 +896,7 @@ async def filter_playlist(request):
     filter_dislikes = request.json.get("filter_dislikes")
 
     fields = "total,limit,href,next,items(track(id,is_playable,explicit,artists))"
-    tracks = await spotify.user_playlist_tracks(owner_id, playlist_id, fields=fields)
+    tracks = await spotify.user_playlist_tracks(playlist_id, fields=fields)
     tracks = await tracks.all()
 
     if filter_explicit:
@@ -931,7 +921,7 @@ async def filter_playlist(request):
     playlist = await spotify.user_playlist_create(
         spotify.username, name, description=source_playlist.description
     )
-    await spotify.user_playlist_replace_tracks(spotify.username, playlist.id, tracks)
+    await spotify.user_playlist_replace_tracks(playlist.id, tracks)
 
     if not image and source_playlist.images:
         image = source_playlist.images[0].url
@@ -939,7 +929,7 @@ async def filter_playlist(request):
     if image:
         await add_image(spotify, playlist.id, image, conn=conn)
 
-    playlist = await spotify.user_playlist(spotify.username, playlist.id)
+    playlist = await spotify.user_playlist(playlist.id)
     playlist = await assign_audio_features(spotify, playlist=playlist)
 
     return playlist.to_dict()
@@ -956,7 +946,7 @@ async def rename_playlist(request):
     if not name:
         raise InvalidUsage("Missing parameter `name`")
 
-    await spotify.user_playlist_change_details(spotify.username, playlist_id, name)
+    await spotify.user_playlist_change_details(playlist_id, name)
     return {"renamed": True}
 
 
@@ -973,14 +963,12 @@ async def reorder_playlist(request):
 
     order = {feature: value for feature, value in order.items() if value}
     fields = "total,limit,href,next,items(track(id,is_playable))"
-    tracks = await spotify.user_playlist_tracks(
-        spotify.username, playlist_id, fields=fields
-    )
+    tracks = await spotify.user_playlist_tracks(playlist_id, fields=fields)
     tracks = await tracks.all()
     tracks = await spotify.order_by(
         order, [t.track.id for t in tracks if t.track and t.track.is_playable]
     )
-    await spotify.user_playlist_replace_tracks(spotify.username, playlist_id, tracks)
+    await spotify.user_playlist_replace_tracks(playlist_id, tracks)
     return {"reordered": True}
 
 
@@ -998,7 +986,7 @@ async def replace_tracks(request):
     order = request.json.get("order")
     if order:
         tracks = await spotify.order_by(order, tracks)
-    await spotify.user_playlist_replace_tracks(spotify.username, playlist_id, tracks)
+    await spotify.user_playlist_replace_tracks(playlist_id, tracks)
     return {"replaced": True}
 
 
