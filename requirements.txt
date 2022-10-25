@@ -4,7 +4,7 @@ aiohttp==3.5.4
 aioredis==1.2.0
 aiocontextvars
 async_generator==1.10
-asyncpg==0.18.3
+asyncpg==0.21.0
 cchardet==2.1.4
 fuzzywuzzy==0.17.0
 git+https://github.com/alin23/arq.git@v1.2.0#egg=arq
