@@ -11,48 +11,40 @@ environment:
   DOCKER_BUILDKIT: "1"
 
 steps:
-  - name: docker
-    image: plugins/docker
-    settings:
-      auto_tag: true
-      build_args:
-        - BUILDKIT_INLINE_CACHE=1
-      password:
-        from_secret: docker_password
-      repo: noiseblend/api
-      username: alinpanaitiu
-      purge: false
-      cache_from:
-        - noiseblend/api:latest
-
-  - name: deploy
-    image: curlimages/curl
+  # build on the HOST daemon (host socket) and push to the LOCAL registry.
+  # plugins/docker uses an isolated dind that can't reach localhost:5000, so we
+  # use docker:cli against the mounted host socket. Repo must be TRUSTED in Drone
+  # for the host-volume mount to be allowed.
+  - name: build
+    image: docker:cli
+    volumes:
+      - name: dockersock
+        path: /var/run/docker.sock
     commands:
-      - curl -L -s -S https://alin:$${DEPLOY_PASSWORD}@deploy.darkwoods.win/noiseblend
-    environment:
-      DEPLOY_PASSWORD:
-        from_secret: deploy_password
+      - docker build -t localhost:5000/noiseblend-api:latest .
+      - docker push localhost:5000/noiseblend-api:latest
+
+  # roll the api service so it picks up the freshly-pushed image. --force
+  # recreates the task and re-resolves the tag to the new digest.
+  - name: deploy
+    image: docker:cli
+    volumes:
+      - name: dockersock
+        path: /var/run/docker.sock
+    commands:
+      - docker service update --image localhost:5000/noiseblend-api:latest --force noiseblend_api
     when:
       branch:
         - master
     depends_on:
-      - docker
+      - build
 
-  - name: cloudflare
-    image: jetrails/drone-cloudflare-caching
-    settings:
-      api_token:
-        from_secret: cloudflare_cache_purge_token
-      zone_identifier: 4261720d9ab40fdc12b31ba8c63d6fdf
-      action: purge_everything
-    when:
-      branch:
-        - master
-    depends_on:
-      - deploy
-
+volumes:
+  - name: dockersock
+    host:
+      path: /var/run/docker.sock
 ---
 kind: signature
-hmac: 09e9fc22c6dd5efca796fb63a11d4088f13d8fabad47ed9246790d58b0b3e38b
+hmac: 3ccbd08f9cdb31ea6b816aa8fcdf48440b712b53fc0c12e98f7dfdd0e99638e7
 
 ...
