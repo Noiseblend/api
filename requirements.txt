@@ -21,5 +21,5 @@ sanic_compress==0.1.1
 sanic_cors==0.9.7
 sendgrid==5.6.0
 sentry_sdk==1.1.0
-spfy==3.9.0
+spfy @ git+https://github.com/alin23/spfy@a70608e
 stringcase==1.2.0
